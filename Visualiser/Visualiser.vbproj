@@ -120,6 +120,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationEvents.vb" />
     <Compile Include="Visualiser.vb">
       <SubType>Form</SubType>
     </Compile>
