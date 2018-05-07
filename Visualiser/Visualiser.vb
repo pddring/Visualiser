@@ -1,4 +1,5 @@
 ﻿Imports System.Net
+Imports System.Text.RegularExpressions
 Imports AForge.Video
 Imports AForge.Video.DirectShow
 
@@ -98,6 +99,7 @@ Public Class Visualiser
 
     ' Currently selected remote webcam device
     Dim stream As MJPEGStream
+    Dim streamIP As String
 
     ' Area to crop in order to zoom in on part of the image
     Dim pad As New ZoomArea
@@ -309,6 +311,24 @@ Public Class Visualiser
                     highQuality = Not highQuality
                 End If
 
+            Case Keys.Enter
+                If status = PlayMode.Playing Then
+                    If source = SourceType.RemoteCamera And streamIP <> "" Then
+                        Dim url As String
+                        url = streamIP + "cam/1/led_toggle"
+
+                        Dim t As New Task(Sub()
+
+                                              Dim request = WebRequest.Create(url)
+                                              Using response = request.GetResponse()
+                                              End Using
+
+                                          End Sub)
+                        t.Start()
+                    End If
+                End If
+
+
             Case Keys.D2
                 If e.Control Then
                     ChooseStream()
@@ -402,6 +422,30 @@ Public Class Visualiser
                 Else amount = -1
                 End If
                 device.SetCameraProperty(CameraControlProperty.Zoom, zoom + amount, CameraControlFlags.Manual)
+            End If
+
+            If source = SourceType.RemoteCamera And streamIP <> "" Then
+                Dim url As String
+                Dim zDiff = 0
+                If e.Delta > 0 Then
+                    url = streamIP + "cam/1/zoomin"
+                    zDiff += 1
+                Else
+                    url = streamIP + "cam/1/zoomout"
+                    If zoom > 1 Then
+                        zDiff -= 1
+                    End If
+                End If
+
+                Dim t As New Task(Sub()
+                                      Dim request = WebRequest.Create(url)
+                                      Using response = request.GetResponse()
+                                          zoom += zDiff
+
+                                      End Using
+
+                                  End Sub)
+                t.Start()
             End If
         Else
             ' Amount to zoom by
@@ -720,6 +764,8 @@ Public Class Visualiser
 
             ' save connection for next time
             My.Settings("LastStreamAddress") = src
+            Dim m = Regex.Match(src, "http:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+\/")
+            streamIP = m.Captures(0).Value
             My.Settings.Save()
 
             ' connect to remote device
