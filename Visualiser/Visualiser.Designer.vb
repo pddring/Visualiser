@@ -32,6 +32,7 @@ Partial Class Visualiser
         Me.ExitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CameraToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ChooseCameraCtrl1ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ConnectToStreamCtrl2ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.EditPropertiesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToggleQuality1ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.PlayPauseSpaceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -46,7 +47,6 @@ Partial Class Visualiser
         Me.Reset0ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FullScreenFToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToogleToolbarTToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ConnectToStreamCtrl2ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.statusBar.SuspendLayout()
         Me.mainMenu.SuspendLayout()
         Me.SuspendLayout()
@@ -55,16 +55,16 @@ Partial Class Visualiser
         '
         Me.statusBar.ImageScalingSize = New System.Drawing.Size(32, 32)
         Me.statusBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
-        Me.statusBar.Location = New System.Drawing.Point(0, 650)
+        Me.statusBar.Location = New System.Drawing.Point(0, 649)
         Me.statusBar.Name = "statusBar"
-        Me.statusBar.Size = New System.Drawing.Size(854, 37)
+        Me.statusBar.Size = New System.Drawing.Size(854, 38)
         Me.statusBar.TabIndex = 0
         Me.statusBar.Text = "StatusStrip1"
         '
         'lblStatus
         '
         Me.lblStatus.Name = "lblStatus"
-        Me.lblStatus.Size = New System.Drawing.Size(120, 32)
+        Me.lblStatus.Size = New System.Drawing.Size(120, 33)
         Me.lblStatus.Text = "Status bar"
         '
         'timerRefresh
@@ -107,6 +107,12 @@ Partial Class Visualiser
         Me.ChooseCameraCtrl1ToolStripMenuItem.Name = "ChooseCameraCtrl1ToolStripMenuItem"
         Me.ChooseCameraCtrl1ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
         Me.ChooseCameraCtrl1ToolStripMenuItem.Text = "&Choose Camera (Ctrl + 1)"
+        '
+        'ConnectToStreamCtrl2ToolStripMenuItem
+        '
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Name = "ConnectToStreamCtrl2ToolStripMenuItem"
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Text = "Connect to Stream (Ctrl + 2)"
         '
         'EditPropertiesToolStripMenuItem
         '
@@ -193,12 +199,6 @@ Partial Class Visualiser
         Me.ToogleToolbarTToolStripMenuItem.Name = "ToogleToolbarTToolStripMenuItem"
         Me.ToogleToolbarTToolStripMenuItem.Size = New System.Drawing.Size(303, 38)
         Me.ToogleToolbarTToolStripMenuItem.Text = "&Toogle toolbar (T)"
-        '
-        'ConnectToStreamCtrl2ToolStripMenuItem
-        '
-        Me.ConnectToStreamCtrl2ToolStripMenuItem.Name = "ConnectToStreamCtrl2ToolStripMenuItem"
-        Me.ConnectToStreamCtrl2ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
-        Me.ConnectToStreamCtrl2ToolStripMenuItem.Text = "Connect to Stream (Ctrl + 2)"
         '
         'Visualiser
         '

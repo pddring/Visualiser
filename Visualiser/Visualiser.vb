@@ -188,7 +188,7 @@ Public Class Visualiser
     ''' </summary>
     ''' <returns>DialogResult (OK / Cancel)</returns>
     Private Function ChooseDevice() As DialogResult
-
+        zoom = 0
         ' Show dialog
         Dim d As VideoCaptureDeviceForm = New VideoCaptureDeviceForm()
         If d.ShowDialog() = DialogResult.OK Then
@@ -348,6 +348,7 @@ Public Class Visualiser
                 pad.Right = 0
                 pad.Top = 0
                 pad.Bottom = 0
+                zoom = 0
         End Select
     End Sub
 
@@ -372,12 +373,18 @@ Public Class Visualiser
 
             ' Show captured frame resolution (not actually displayed resolution)
             lblStatus.Text &= " " & frameW & "x" & frameH
+
+            If zoom > 1 Then
+                lblStatus.Text &= " Zoom: " & zoom
+            End If
         End If
 
         ' Reset frame count for the next second
         frameCount = 0
     End Sub
 
+
+    Dim zoom As Integer
     ''' <summary>
     ''' Mouse scroll wheel handler - allows user to zoom in and out of an area of the video
     ''' </summary>
@@ -385,31 +392,45 @@ Public Class Visualiser
     ''' <param name="e"></param>
     Private Sub MouseWheelScroll(sender As Object, e As MouseEventArgs)
 
-        ' Amount to zoom by
-        Dim aX As Double = frameW / 10
-        Dim aY As Double = frameH / 10
-
-        ' aX is the total amount to ignore on both left and right. x is how much of aX is ignored on the left.
-        Dim x As Double = aX * (e.X / Width)
-        Dim y As Double = aY * (e.Y / Height)
-
-        ' Zoom in
-        If e.Delta > 0 Then
-            If pad.Left + pad.Right + aX < frameW Then
-                pad.Left += x
-                pad.Top += y
-                pad.Right += aX - x
-                pad.Bottom += aY - y
+        If My.Computer.Keyboard.CtrlKeyDown Then
+            Dim flags As CameraControlFlags
+            If source = SourceType.LocalCamera And IsNothing(device) = False Then
+                device.GetCameraProperty(CameraControlProperty.Zoom, zoom, flags)
+                Dim amount As Integer = 0
+                If e.Delta > 0 Then
+                    amount = 1
+                Else amount = -1
+                End If
+                device.SetCameraProperty(CameraControlProperty.Zoom, zoom + amount, CameraControlFlags.Manual)
             End If
-
-            ' Zoom out
         Else
-            If pad.Left + pad.Right - aX > 0 Then
-                pad.Left -= x
-                pad.Top -= y
-                pad.Bottom -= (aY - y)
-                pad.Right -= (aX - x)
+            ' Amount to zoom by
+            Dim aX As Double = frameW / 10
+            Dim aY As Double = frameH / 10
+
+            ' aX is the total amount to ignore on both left and right. x is how much of aX is ignored on the left.
+            Dim x As Double = aX * (e.X / Width)
+            Dim y As Double = aY * (e.Y / Height)
+
+            ' Zoom in
+            If e.Delta > 0 Then
+                If pad.Left + pad.Right + aX < frameW Then
+                    pad.Left += x
+                    pad.Top += y
+                    pad.Right += aX - x
+                    pad.Bottom += aY - y
+                End If
+
+                ' Zoom out
+            Else
+                If pad.Left + pad.Right - aX > 0 Then
+                    pad.Left -= x
+                    pad.Top -= y
+                    pad.Bottom -= (aY - y)
+                    pad.Right -= (aX - x)
+                End If
             End If
+
 
         End If
     End Sub
@@ -673,6 +694,7 @@ Public Class Visualiser
     ''' Show dialog to choose remote webcam device
     ''' </summary>
     Sub ChooseStream()
+        zoom = 0
         ' stop streaming from local remote devices
         Try
             RemoveHandler device.NewFrame, AddressOf NewFrame
