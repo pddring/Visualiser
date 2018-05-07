@@ -1,33 +1,63 @@
 ﻿Imports AForge.Video
 Imports AForge.Video.DirectShow
 
+''' <summary>
+''' Visualiser form
+''' </summary>
 Public Class Visualiser
 
+    ''' <summary>
+    ''' Stores details about video annotations
+    ''' </summary>
     Class Annotation
+
+        ' Position to show annotation
         Public coordinates As Rectangle
+
+        ' Type of annotation
         Public Enum AnnotationType
+
+            ' Unfilled rectangle defined by coordinates
             Rectangle
+
+            ' Lines from top left to bottom right of coordinates
             Line
+
+            ' Freehand drawing with coordinates stored in points
             Scribble
         End Enum
+
+        ' type of annotation
         Public Type As AnnotationType
+
+        ' list of points that define the freehand scribble
         Public points As New List(Of Point)
+
+        ' colour and width of annotation
         Public pen As New Pen(New SolidBrush(Color.Red), 10)
 
+        ' Copy settings from existing annotation
         Sub New(a As Annotation)
             Me.pen.Color = a.pen.Color
             Me.Type = a.Type
         End Sub
 
+        ' Default constructor
         Sub New()
 
         End Sub
     End Class
 
+    ' Annotation used whilst drawing, before it's saved
     Public currentAnnotation As Annotation = New Annotation
 
+    ' List of saved annotations
     Public annotations As New List(Of Annotation)
 
+    ' Set to true whilst user is dragging a shape
+    Dim drawingShape As Boolean = False
+
+    ' Defines the area cropped out of the current view. The rest is stretched to the size of the current window
     Class ZoomArea
         Public Left As Integer = 0
         Public Right As Integer = 0
@@ -35,26 +65,55 @@ Public Class Visualiser
         Public Bottom As Integer = 0
     End Class
 
+    ' Camera capture / play mode
     Enum PlayMode As Integer
         Paused
         Playing
     End Enum
 
+    ' Start camera in play mode
     Dim status As PlayMode = PlayMode.Paused
 
+    ' High quality mode enables anti-aliasing whilst resizing and a few other things. Didn't seem to make a noticeable impact
+    ' on quality but does impede frame rate. Toggle by pressing 1
     Dim highQuality As Boolean = False
+
+    ' Currently selected webcam device
     Dim device As VideoCaptureDevice
 
+    ' Area to crop in order to zoom in on part of the image
     Dim pad As New ZoomArea
 
+    ' Last frame from the camera
     Dim frame As Bitmap
 
+    ' Keeps track of whether the app is in full screen mode or not
+    Dim fullScreen As Boolean = False
+
+    ' Used to store the app size before it went into full screen mode
+    Dim oldSize As Rectangle
+
+    ' Used to count how many frames have been displayed in the last second
+    Dim frameCount As Integer = 0
+
+    ' Used to store the dimensions of frames captured from the camera device
+    Dim frameW As Integer = 800
+    Dim frameH As Integer = 600
+
+    ''' <summary>
+    ''' Handler called when a new frame is available from the video capture device
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="eventArgs"></param>
     Private Sub NewFrame(sender As Object, eventArgs As NewFrameEventArgs)
+        ' Create a new bitmap the size of the current window for drawing
         Dim frame As Bitmap = New Bitmap(Width, Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
         frameW = eventArgs.Frame.Width
         frameH = eventArgs.Frame.Height
 
         Using g As Graphics = Drawing.Graphics.FromImage(frame)
+
+            ' Enable high quality settings
             If highQuality Then
                 g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
                 g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
@@ -62,10 +121,13 @@ Public Class Visualiser
                 g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
                 g.CompositingMode = Drawing2D.CompositingMode.SourceOver
             End If
+
+            ' Resize captured frame
             Dim destRect As New Rectangle(0, 0, Width, Height)
             Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
             g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
 
+            ' Draw annotations
             Try
                 For Each a As Annotation In annotations
                     Select Case a.Type
@@ -80,7 +142,7 @@ Public Class Visualiser
                     End Select
                 Next
 
-
+                ' Draw current annotation
                 Select Case currentAnnotation.Type
                     Case Annotation.AnnotationType.Line
                         g.DrawLine(currentAnnotation.pen, currentAnnotation.coordinates.X, currentAnnotation.coordinates.Y, currentAnnotation.coordinates.Right, currentAnnotation.coordinates.Bottom)
@@ -94,41 +156,55 @@ Public Class Visualiser
             Catch
             End Try
         End Using
+
+        ' Update the current window with the resized image plus annotations
         Me.BackgroundImage = frame
+
+        ' update frame rate stats
         frameCount += 1
 
     End Sub
 
+    ''' <summary>
+    ''' Show dialog letting the user choose which video capture device to use and choose resolution
+    ''' </summary>
+    ''' <returns>DialogResult (OK / Cancel)</returns>
     Private Function ChooseDevice() As DialogResult
+
+        ' Show dialog
         Dim d As VideoCaptureDeviceForm = New VideoCaptureDeviceForm()
         If d.ShowDialog() = DialogResult.OK Then
+
+            ' Stop receiving frames from the previous device
             Try
                 device.Stop()
                 RemoveHandler device.NewFrame, AddressOf Me.NewFrame
             Catch ex As Exception
-
             End Try
-            device = d.VideoDevice
 
+            ' Set up the newly selected device
+            device = d.VideoDevice
             device.Start()
             status = PlayMode.Playing
-
             AddHandler device.NewFrame, AddressOf Me.NewFrame
 
         End If
         Return d.DialogResult
-
     End Function
 
-    Dim fullScreen As Boolean = False
-    Dim oldSize As Rectangle
-
+    ''' <summary>
+    ''' Toggles full screen mode or normal size mode
+    ''' </summary>
     Sub ToggleFullscreen()
+
+        ' Return from full screen mode into normal mode
         If fullScreen Then
             Bounds = oldSize
             Me.FormBorderStyle = FormBorderStyle.Sizable
             fullScreen = False
             mainMenu.Visible = True
+
+            ' Go into full screen mode
         Else
             oldSize = Bounds
             Me.FormBorderStyle = FormBorderStyle.None
@@ -141,19 +217,35 @@ Public Class Visualiser
         End If
     End Sub
 
+    ''' <summary>
+    ''' Keyboard shortcut handler
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
 
         Select Case e.KeyCode
+            ' E shows camera settings window
             Case Keys.E
                 device.DisplayPropertyPage(Me.Handle)
+
+            ' T toggles toolbar at the bottom of the screen
             Case Keys.T
                 statusBar.Visible = Not statusBar.Visible
+
+            ' C clears all annotations
             Case Keys.C
                 annotations.Clear()
+
+            ' Q quits the program
             Case Keys.Q
                 Close()
+
+            ' S enables scribble annotation mode
             Case Keys.S
                 currentAnnotation.Type = Annotation.AnnotationType.Scribble
+
+            ' Ctrl Z removes the last added annotation
             Case Keys.Z
                 If e.Control Then
                     Try
@@ -161,21 +253,29 @@ Public Class Visualiser
                     Catch
                     End Try
                 End If
+
+            ' F toggles fullscreen
             Case Keys.F
                 ToggleFullscreen()
 
+            ' L enables line drawing annotation mode
             Case Keys.L
                 currentAnnotation.Type = Annotation.AnnotationType.Line
+
+            ' R enables rectangle drawing annotation mode (default)
             Case Keys.R
                 currentAnnotation.Type = Annotation.AnnotationType.Rectangle
 
-
+            ' P shows colour picker dialog
             Case Keys.P
                 Dim dlg As New ColorDialog
                 dlg.FullOpen = True
                 If dlg.ShowDialog = DialogResult.OK Then
                     currentAnnotation.pen.Color = dlg.Color
                 End If
+
+            ' Ctrl + 1 shows camera selection dialog
+            ' 1 on its own toggles high / normal quality mode
             Case Keys.D1
                 If e.Control Then
                     ChooseDevice()
@@ -183,6 +283,7 @@ Public Class Visualiser
                     highQuality = Not highQuality
                 End If
 
+            ' Space toggles play mode (pause / play)
             Case Keys.Space
                 If status = PlayMode.Paused Then
                     status = PlayMode.Playing
@@ -192,6 +293,7 @@ Public Class Visualiser
                     device.Stop()
                 End If
 
+            ' 0 resets any zoom
             Case Keys.D0
                 pad.Left = 0
                 pad.Right = 0
@@ -200,36 +302,49 @@ Public Class Visualiser
         End Select
     End Sub
 
-    Dim frameCount As Integer = 0
-    Dim frameW As Integer = 800
-    Dim frameH As Integer = 600
-
-
+    ''' <summary>
+    ''' Triggered every second to update the frame rate label
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub timerRefresh_Tick(sender As Object, e As EventArgs) Handles timerRefresh.Tick
 
+        ' App is currently paused
         If status = PlayMode.Paused Then
             lblStatus.Text = "Paused"
         End If
 
+        ' App is currently displaying live feed
         If status = PlayMode.Playing Then
             lblStatus.Text = "Playing " & frameCount & " fps"
             If highQuality Then
                 lblStatus.Text &= " (High Quality)"
             End If
 
+            ' Show captured frame resolution (not actually displayed resolution)
             lblStatus.Text &= " " & frameW & "x" & frameH
         End If
+
+        ' Reset frame count for the next second
         frameCount = 0
     End Sub
 
+    ''' <summary>
+    ''' Mouse scroll wheel handler - allows user to zoom in and out of an area of the video
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub MouseWheelScroll(sender As Object, e As MouseEventArgs)
+
+        ' Amount to zoom by
         Dim aX As Double = frameW / 10
         Dim aY As Double = frameH / 10
 
+        ' aX is the total amount to ignore on both left and right. x is how much of aX is ignored on the left.
         Dim x As Double = aX * (e.X / Width)
         Dim y As Double = aY * (e.Y / Height)
 
-
+        ' Zoom in
         If e.Delta > 0 Then
             If pad.Left + pad.Right + aX < frameW Then
                 pad.Left += x
@@ -237,6 +352,8 @@ Public Class Visualiser
                 pad.Right += aX - x
                 pad.Bottom += aY - y
             End If
+
+            ' Zoom out
         Else
             If pad.Left + pad.Right - aX > 0 Then
                 pad.Left -= x
@@ -248,15 +365,30 @@ Public Class Visualiser
         End If
     End Sub
 
+    ''' <summary>
+    ''' App initialisation
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        ' Mouse wheel handler can't be added in the GUI. Don't know why.
         AddHandler Me.MouseWheel, AddressOf MouseWheelScroll
+
+        ' Show device choose dialog on startup
         If ChooseDevice() <> DialogResult.OK Then
             Close()
         End If
-
     End Sub
 
+    ''' <summary>
+    ''' App closing handler
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Visualiser_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+
+        ' Shutdown camera if necessary
         Try
             device.Stop()
         Catch
@@ -264,20 +396,39 @@ Public Class Visualiser
     End Sub
 
 
-    Dim drawingShape As Boolean = False
+    ''' <summary>
+    ''' Mouse down handler - user is starting to draw an annotation
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Visualiser_MouseDown(sender As Object, e As MouseEventArgs) Handles MyBase.MouseDown
+
+        ' Store current mouse location
         currentAnnotation.coordinates.Location = e.Location
         drawingShape = True
     End Sub
 
+    ''' <summary>
+    ''' Mouse up handler - user has finished drawing an annotation
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Visualiser_MouseUp(sender As Object, e As MouseEventArgs) Handles MyBase.MouseUp
+
+        ' Store annotation
         drawingShape = False
         annotations.Add(currentAnnotation)
         currentAnnotation = New Annotation(currentAnnotation)
-
     End Sub
 
+    ''' <summary>
+    ''' Mouse move handler
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Visualiser_MouseMove(sender As Object, e As MouseEventArgs) Handles MyBase.MouseMove
+
+        ' Is user currently drawing an annotation?
         If drawingShape Then
             currentAnnotation.coordinates.Width = e.Location.X - currentAnnotation.coordinates.X
             currentAnnotation.coordinates.Height = e.Location.Y - currentAnnotation.coordinates.Y
@@ -287,23 +438,54 @@ Public Class Visualiser
         End If
     End Sub
 
+    ''' <summary>
+    ''' Menu: File > Exit 
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ExitToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
+
+        ' Close the program
         Close()
     End Sub
 
+    ''' <summary>
+    ''' Menu: Camera > Choose Camera
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ChooseCameraCtrl1ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChooseCameraCtrl1ToolStripMenuItem.Click
+
+        ' Show dialog to choose camera and resolution
         ChooseDevice()
     End Sub
 
+    ' Menu: Camera > Edit Properties
     Private Sub EditPropertiesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles EditPropertiesToolStripMenuItem.Click
+
+        ' Show dialog to edit camera settings
         device.DisplayPropertyPage(Me.Handle)
     End Sub
 
+    ''' <summary>
+    ''' Menu: Camera > Toggle quality
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ToggleQuality1ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ToggleQuality1ToolStripMenuItem.Click
+
+        ' Toggle quality settings
         highQuality = Not highQuality
     End Sub
 
+    ''' <summary>
+    ''' Menu: Camera > Play / Pause
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub PlayPauseSpaceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PlayPauseSpaceToolStripMenuItem.Click
+
+        ' Toggle play mode
         If status = PlayMode.Paused Then
             status = PlayMode.Playing
             device.Start()
@@ -313,41 +495,97 @@ Public Class Visualiser
         End If
     End Sub
 
+    ''' <summary>
+    ''' Menu: Display > Reset zoom
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub Reset0ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles Reset0ToolStripMenuItem.Click
+
+        ' Remove all padding so zooming is reset to default settings
         pad.Left = 0
         pad.Right = 0
         pad.Top = 0
         pad.Bottom = 0
     End Sub
 
+    ''' <summary>
+    ''' Menu: Display > Full Screen
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub FullScreenFToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FullScreenFToolStripMenuItem.Click
+
+        ' Toggle fullscreen mode
         ToggleFullscreen()
     End Sub
 
+    ''' <summary>
+    ''' Menu: Display > Toggle toolbar
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ToogleToolbarTToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ToogleToolbarTToolStripMenuItem.Click
+
+        ' Show / hide status bar
         statusBar.Visible = Not statusBar.Visible
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotations > Undo
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub UndoCtrlZToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles UndoCtrlZToolStripMenuItem.Click
+
+        ' Remove last added annotation (if there is one to remove)
         Try
             annotations.Remove(annotations.Last)
         Catch
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotations > Line
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub LineLToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LineLToolStripMenuItem.Click
+
+        ' Allow user to draw a line annotation by dragging
         currentAnnotation.Type = Annotation.AnnotationType.Line
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotations > Rectangle
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub RectangleRToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RectangleRToolStripMenuItem.Click
+
+        ' Allow user to to draw a rectangle by dragging
         currentAnnotation.Type = Annotation.AnnotationType.Rectangle
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotations > Scribble
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ScribbleSToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ScribbleSToolStripMenuItem.Click
+
+        ' Allow user to draw a freehand scribble by dragging
         currentAnnotation.Type = Annotation.AnnotationType.Scribble
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotation > Pick colour
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub PickColourPToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PickColourPToolStripMenuItem.Click
+
+        ' Show dialog to choose annotation colour
         Dim dlg As New ColorDialog
         dlg.FullOpen = True
         If dlg.ShowDialog = DialogResult.OK Then
@@ -355,7 +593,14 @@ Public Class Visualiser
         End If
     End Sub
 
+    ''' <summary>
+    ''' Menu: Annotations > Clear
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub ClearCToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ClearCToolStripMenuItem.Click
+
+        ' Clear all annotations
         annotations.Clear()
     End Sub
 End Class
