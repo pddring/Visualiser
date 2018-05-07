@@ -1,10 +1,19 @@
-﻿Imports AForge.Video
+﻿Imports System.Net
+Imports AForge.Video
 Imports AForge.Video.DirectShow
 
 ''' <summary>
 ''' Visualiser form
 ''' </summary>
 Public Class Visualiser
+
+
+    Public Enum SourceType
+        LocalCamera
+        RemoteCamera
+    End Enum
+
+    Public source As SourceType = SourceType.LocalCamera
 
     ''' <summary>
     ''' Stores details about video annotations
@@ -40,11 +49,17 @@ Public Class Visualiser
         Sub New(a As Annotation)
             Me.pen.Color = a.pen.Color
             Me.Type = a.Type
+            pen.StartCap = Drawing2D.LineCap.Round
+            pen.EndCap = Drawing2D.LineCap.Round
+            pen.LineJoin = Drawing2D.LineJoin.Round
+
         End Sub
 
         ' Default constructor
         Sub New()
-
+            pen.StartCap = Drawing2D.LineCap.Round
+            pen.EndCap = Drawing2D.LineCap.Round
+            pen.LineJoin = Drawing2D.LineJoin.Round
         End Sub
     End Class
 
@@ -80,6 +95,9 @@ Public Class Visualiser
 
     ' Currently selected webcam device
     Dim device As VideoCaptureDevice
+
+    ' Currently selected remote webcam device
+    Dim stream As MJPEGStream
 
     ' Area to crop in order to zoom in on part of the image
     Dim pad As New ZoomArea
@@ -181,9 +199,15 @@ Public Class Visualiser
                 RemoveHandler device.NewFrame, AddressOf Me.NewFrame
             Catch ex As Exception
             End Try
+            Try
+                stream.Stop()
+            Catch ex As Exception
+
+            End Try
 
             ' Set up the newly selected device
             device = d.VideoDevice
+            source = SourceType.LocalCamera
             device.Start()
             status = PlayMode.Playing
             AddHandler device.NewFrame, AddressOf Me.NewFrame
@@ -227,7 +251,9 @@ Public Class Visualiser
         Select Case e.KeyCode
             ' E shows camera settings window
             Case Keys.E
-                device.DisplayPropertyPage(Me.Handle)
+                If source = SourceType.LocalCamera And Not IsNothing(device) Then
+                    device.DisplayPropertyPage(Me.Handle)
+                End If
 
             ' T toggles toolbar at the bottom of the screen
             Case Keys.T
@@ -283,15 +309,38 @@ Public Class Visualiser
                     highQuality = Not highQuality
                 End If
 
+            Case Keys.D2
+                If e.Control Then
+                    ChooseStream()
+                End If
+
             ' Space toggles play mode (pause / play)
             Case Keys.Space
-                If status = PlayMode.Paused Then
-                    status = PlayMode.Playing
-                    device.Start()
-                Else
-                    status = PlayMode.Paused
-                    device.Stop()
-                End If
+                Dim oldPlayMode = status
+                Try
+                    If status = PlayMode.Paused Then
+                        status = PlayMode.Playing
+                        If source = SourceType.LocalCamera Then
+                            device.Start()
+                        End If
+                        If source = SourceType.RemoteCamera Then
+                            stream.Start()
+                        End If
+
+                    Else
+                        status = PlayMode.Paused
+                        If source = SourceType.LocalCamera Then
+                            device.Stop()
+                        End If
+                        If source = SourceType.RemoteCamera Then
+                            stream.Stop()
+                        End If
+
+                    End If
+                Catch
+                    status = oldPlayMode
+                End Try
+
 
             ' 0 resets any zoom
             Case Keys.D0
@@ -371,14 +420,15 @@ Public Class Visualiser
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        AllowTransparency = False
 
         ' Mouse wheel handler can't be added in the GUI. Don't know why.
         AddHandler Me.MouseWheel, AddressOf MouseWheelScroll
 
         ' Show device choose dialog on startup
-        If ChooseDevice() <> DialogResult.OK Then
-            Close()
-        End If
+        'If ChooseDevice() <> DialogResult.OK Then
+        'Close()
+        'End If
     End Sub
 
     ''' <summary>
@@ -392,6 +442,11 @@ Public Class Visualiser
         Try
             device.Stop()
         Catch
+        End Try
+        Try
+            stream.Stop()
+        Catch ex As Exception
+
         End Try
     End Sub
 
@@ -488,10 +543,20 @@ Public Class Visualiser
         ' Toggle play mode
         If status = PlayMode.Paused Then
             status = PlayMode.Playing
-            device.Start()
+            If source = SourceType.LocalCamera Then
+                device.Start()
+            Else
+                stream.Start()
+            End If
+
         Else
             status = PlayMode.Paused
-            device.Stop()
+            If source = SourceType.LocalCamera Then
+                device.Stop()
+            Else
+                stream.Stop()
+            End If
+
         End If
     End Sub
 
@@ -602,5 +667,56 @@ Public Class Visualiser
 
         ' Clear all annotations
         annotations.Clear()
+    End Sub
+
+    ''' <summary>
+    ''' Show dialog to choose remote webcam device
+    ''' </summary>
+    Sub ChooseStream()
+        ' stop streaming from local remote devices
+        Try
+            RemoveHandler device.NewFrame, AddressOf NewFrame
+            device.Stop()
+        Catch
+        End Try
+        Try
+            stream.Stop()
+        Catch ex As Exception
+        End Try
+
+        ' Ask for connection string
+        Dim src As String = InputBox("Stream source: (leave blank to scan)", "Connect to remote camera", My.Settings("LastStreamAddress"))
+
+        Try
+            ' Show scan window if connection string is empty
+            If src = "" Then
+                Dim dlg As New RemoteCameraScanner
+                If dlg.ShowDialog() = DialogResult.OK Then
+                    src = dlg.RemoteAddress
+                End If
+            End If
+
+            ' save connection for next time
+            My.Settings("LastStreamAddress") = src
+            My.Settings.Save()
+
+            ' connect to remote device
+            stream = New MJPEGStream(src)
+            AddHandler stream.NewFrame, AddressOf NewFrame
+            source = SourceType.RemoteCamera
+            stream.Start()
+            status = PlayMode.Playing
+        Catch
+            MsgBox("Could not connect")
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Menu: Camera > Connect to stream
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    Private Sub ConnectToStreamCtrl2ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConnectToStreamCtrl2ToolStripMenuItem.Click
+        ChooseStream()
     End Sub
 End Class

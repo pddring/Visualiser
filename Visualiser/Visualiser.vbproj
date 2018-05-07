@@ -14,6 +14,8 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,13 +26,11 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>8</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -121,6 +121,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="RemoteCameraScanner.Designer.vb">
+      <DependentUpon>RemoteCameraScanner.vb</DependentUpon>
+    </Compile>
+    <Compile Include="RemoteCameraScanner.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Visualiser.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -145,6 +151,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="RemoteCameraScanner.resx">
+      <DependentUpon>RemoteCameraScanner.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Visualiser.resx">
       <DependentUpon>Visualiser.vb</DependentUpon>
     </EmbeddedResource>
@@ -171,6 +180,7 @@
     <None Include="Visualiser_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Help.png" />
     <Content Include="Oxygen-Icons.org-Oxygen-Devices-camera-web.ico" />
   </ItemGroup>
   <ItemGroup>

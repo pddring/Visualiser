@@ -46,6 +46,7 @@ Partial Class Visualiser
         Me.Reset0ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FullScreenFToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToogleToolbarTToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ConnectToStreamCtrl2ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.statusBar.SuspendLayout()
         Me.mainMenu.SuspendLayout()
         Me.SuspendLayout()
@@ -54,9 +55,9 @@ Partial Class Visualiser
         '
         Me.statusBar.ImageScalingSize = New System.Drawing.Size(32, 32)
         Me.statusBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
-        Me.statusBar.Location = New System.Drawing.Point(0, 511)
+        Me.statusBar.Location = New System.Drawing.Point(0, 650)
         Me.statusBar.Name = "statusBar"
-        Me.statusBar.Size = New System.Drawing.Size(770, 37)
+        Me.statusBar.Size = New System.Drawing.Size(854, 37)
         Me.statusBar.TabIndex = 0
         Me.statusBar.Text = "StatusStrip1"
         '
@@ -77,7 +78,7 @@ Partial Class Visualiser
         Me.mainMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.FileToolStripMenuItem, Me.CameraToolStripMenuItem, Me.AnnotationsToolStripMenuItem, Me.ZoomToolStripMenuItem})
         Me.mainMenu.Location = New System.Drawing.Point(0, 0)
         Me.mainMenu.Name = "mainMenu"
-        Me.mainMenu.Size = New System.Drawing.Size(770, 40)
+        Me.mainMenu.Size = New System.Drawing.Size(854, 40)
         Me.mainMenu.TabIndex = 1
         Me.mainMenu.Text = "MenuStrip1"
         '
@@ -91,12 +92,12 @@ Partial Class Visualiser
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(268, 38)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(190, 38)
         Me.ExitToolStripMenuItem.Text = "E&xit (Q)"
         '
         'CameraToolStripMenuItem
         '
-        Me.CameraToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ChooseCameraCtrl1ToolStripMenuItem, Me.EditPropertiesToolStripMenuItem, Me.ToggleQuality1ToolStripMenuItem, Me.PlayPauseSpaceToolStripMenuItem})
+        Me.CameraToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ChooseCameraCtrl1ToolStripMenuItem, Me.ConnectToStreamCtrl2ToolStripMenuItem, Me.EditPropertiesToolStripMenuItem, Me.ToggleQuality1ToolStripMenuItem, Me.PlayPauseSpaceToolStripMenuItem})
         Me.CameraToolStripMenuItem.Name = "CameraToolStripMenuItem"
         Me.CameraToolStripMenuItem.Size = New System.Drawing.Size(108, 36)
         Me.CameraToolStripMenuItem.Text = "&Camera"
@@ -104,25 +105,25 @@ Partial Class Visualiser
         'ChooseCameraCtrl1ToolStripMenuItem
         '
         Me.ChooseCameraCtrl1ToolStripMenuItem.Name = "ChooseCameraCtrl1ToolStripMenuItem"
-        Me.ChooseCameraCtrl1ToolStripMenuItem.Size = New System.Drawing.Size(383, 38)
+        Me.ChooseCameraCtrl1ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
         Me.ChooseCameraCtrl1ToolStripMenuItem.Text = "&Choose Camera (Ctrl + 1)"
         '
         'EditPropertiesToolStripMenuItem
         '
         Me.EditPropertiesToolStripMenuItem.Name = "EditPropertiesToolStripMenuItem"
-        Me.EditPropertiesToolStripMenuItem.Size = New System.Drawing.Size(383, 38)
+        Me.EditPropertiesToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
         Me.EditPropertiesToolStripMenuItem.Text = "&Edit properties (E)"
         '
         'ToggleQuality1ToolStripMenuItem
         '
         Me.ToggleQuality1ToolStripMenuItem.Name = "ToggleQuality1ToolStripMenuItem"
-        Me.ToggleQuality1ToolStripMenuItem.Size = New System.Drawing.Size(383, 38)
+        Me.ToggleQuality1ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
         Me.ToggleQuality1ToolStripMenuItem.Text = "&Toggle quality (1)"
         '
         'PlayPauseSpaceToolStripMenuItem
         '
         Me.PlayPauseSpaceToolStripMenuItem.Name = "PlayPauseSpaceToolStripMenuItem"
-        Me.PlayPauseSpaceToolStripMenuItem.Size = New System.Drawing.Size(383, 38)
+        Me.PlayPauseSpaceToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
         Me.PlayPauseSpaceToolStripMenuItem.Text = "&Play / Pause (Space)"
         '
         'AnnotationsToolStripMenuItem
@@ -193,11 +194,19 @@ Partial Class Visualiser
         Me.ToogleToolbarTToolStripMenuItem.Size = New System.Drawing.Size(303, 38)
         Me.ToogleToolbarTToolStripMenuItem.Text = "&Toogle toolbar (T)"
         '
+        'ConnectToStreamCtrl2ToolStripMenuItem
+        '
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Name = "ConnectToStreamCtrl2ToolStripMenuItem"
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Size = New System.Drawing.Size(414, 38)
+        Me.ConnectToStreamCtrl2ToolStripMenuItem.Text = "Connect to Stream (Ctrl + 2)"
+        '
         'Visualiser
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(12.0!, 25.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(770, 548)
+        Me.BackgroundImage = Global.Visualiser.My.Resources.Resources.Help
+        Me.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.ClientSize = New System.Drawing.Size(854, 687)
         Me.Controls.Add(Me.statusBar)
         Me.Controls.Add(Me.mainMenu)
         Me.DoubleBuffered = True
@@ -206,6 +215,7 @@ Partial Class Visualiser
         Me.MainMenuStrip = Me.mainMenu
         Me.Name = "Visualiser"
         Me.Text = "Visualiser"
+        Me.TransparencyKey = System.Drawing.Color.Transparent
         Me.statusBar.ResumeLayout(False)
         Me.statusBar.PerformLayout()
         Me.mainMenu.ResumeLayout(False)
@@ -237,4 +247,5 @@ Partial Class Visualiser
     Friend WithEvents FullScreenFToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ToogleToolbarTToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents PlayPauseSpaceToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ConnectToStreamCtrl2ToolStripMenuItem As ToolStripMenuItem
 End Class
