@@ -37,13 +37,14 @@ Partial Class RemoteCameraScanner
         Me.Label4 = New System.Windows.Forms.Label()
         Me.btnOK = New System.Windows.Forms.Button()
         Me.btnCancel = New System.Windows.Forms.Button()
+        Me.Label5 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'lstIPAddresses
         '
         Me.lstIPAddresses.FormattingEnabled = True
         Me.lstIPAddresses.ItemHeight = 25
-        Me.lstIPAddresses.Location = New System.Drawing.Point(12, 37)
+        Me.lstIPAddresses.Location = New System.Drawing.Point(12, 109)
         Me.lstIPAddresses.Name = "lstIPAddresses"
         Me.lstIPAddresses.Size = New System.Drawing.Size(305, 204)
         Me.lstIPAddresses.TabIndex = 0
@@ -51,7 +52,7 @@ Partial Class RemoteCameraScanner
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(12, 9)
+        Me.Label1.Location = New System.Drawing.Point(12, 81)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(197, 25)
         Me.Label1.TabIndex = 1
@@ -59,7 +60,7 @@ Partial Class RemoteCameraScanner
         '
         'btnScan
         '
-        Me.btnScan.Location = New System.Drawing.Point(17, 320)
+        Me.btnScan.Location = New System.Drawing.Point(17, 392)
         Me.btnScan.Name = "btnScan"
         Me.btnScan.Size = New System.Drawing.Size(300, 45)
         Me.btnScan.TabIndex = 2
@@ -68,7 +69,7 @@ Partial Class RemoteCameraScanner
         '
         'txtPort
         '
-        Me.txtPort.Location = New System.Drawing.Point(17, 283)
+        Me.txtPort.Location = New System.Drawing.Point(17, 355)
         Me.txtPort.Name = "txtPort"
         Me.txtPort.Size = New System.Drawing.Size(300, 31)
         Me.txtPort.TabIndex = 3
@@ -77,7 +78,7 @@ Partial Class RemoteCameraScanner
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(12, 255)
+        Me.Label2.Location = New System.Drawing.Point(12, 327)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(135, 25)
         Me.Label2.TabIndex = 4
@@ -87,7 +88,7 @@ Partial Class RemoteCameraScanner
         '
         Me.lstFound.FormattingEnabled = True
         Me.lstFound.ItemHeight = 25
-        Me.lstFound.Location = New System.Drawing.Point(332, 37)
+        Me.lstFound.Location = New System.Drawing.Point(332, 109)
         Me.lstFound.Name = "lstFound"
         Me.lstFound.Size = New System.Drawing.Size(305, 279)
         Me.lstFound.TabIndex = 5
@@ -95,7 +96,7 @@ Partial Class RemoteCameraScanner
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(336, 9)
+        Me.Label3.Location = New System.Drawing.Point(336, 81)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(209, 25)
         Me.Label3.TabIndex = 6
@@ -103,7 +104,7 @@ Partial Class RemoteCameraScanner
         '
         'progressBar
         '
-        Me.progressBar.Location = New System.Drawing.Point(332, 320)
+        Me.progressBar.Location = New System.Drawing.Point(332, 392)
         Me.progressBar.Name = "progressBar"
         Me.progressBar.Size = New System.Drawing.Size(305, 45)
         Me.progressBar.TabIndex = 7
@@ -114,7 +115,7 @@ Partial Class RemoteCameraScanner
         '
         'txtAddressFormat
         '
-        Me.txtAddressFormat.Location = New System.Drawing.Point(17, 424)
+        Me.txtAddressFormat.Location = New System.Drawing.Point(17, 496)
         Me.txtAddressFormat.Name = "txtAddressFormat"
         Me.txtAddressFormat.Size = New System.Drawing.Size(311, 31)
         Me.txtAddressFormat.TabIndex = 8
@@ -123,7 +124,7 @@ Partial Class RemoteCameraScanner
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(12, 396)
+        Me.Label4.Location = New System.Drawing.Point(12, 468)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(163, 25)
         Me.Label4.TabIndex = 9
@@ -131,7 +132,7 @@ Partial Class RemoteCameraScanner
         '
         'btnOK
         '
-        Me.btnOK.Location = New System.Drawing.Point(498, 424)
+        Me.btnOK.Location = New System.Drawing.Point(498, 496)
         Me.btnOK.Name = "btnOK"
         Me.btnOK.Size = New System.Drawing.Size(139, 47)
         Me.btnOK.TabIndex = 10
@@ -141,12 +142,22 @@ Partial Class RemoteCameraScanner
         'btnCancel
         '
         Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancel.Location = New System.Drawing.Point(341, 424)
+        Me.btnCancel.Location = New System.Drawing.Point(341, 496)
         Me.btnCancel.Name = "btnCancel"
         Me.btnCancel.Size = New System.Drawing.Size(139, 47)
         Me.btnCancel.TabIndex = 11
         Me.btnCancel.Text = "Cancel"
         Me.btnCancel.UseVisualStyleBackColor = True
+        '
+        'Label5
+        '
+        Me.Label5.ForeColor = System.Drawing.Color.Green
+        Me.Label5.Location = New System.Drawing.Point(22, 10)
+        Me.Label5.Name = "Label5"
+        Me.Label5.Size = New System.Drawing.Size(614, 71)
+        Me.Label5.TabIndex = 12
+        Me.Label5.Text = "Install an app like DroidCamX on your mobile device. then scan for it here. Make " &
+    "sure you're on the same WiFi network."
         '
         'RemoteCameraScanner
         '
@@ -154,7 +165,8 @@ Partial Class RemoteCameraScanner
         Me.AutoScaleDimensions = New System.Drawing.SizeF(12.0!, 25.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(650, 499)
+        Me.ClientSize = New System.Drawing.Size(650, 559)
+        Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnOK)
         Me.Controls.Add(Me.Label4)
@@ -188,4 +200,5 @@ Partial Class RemoteCameraScanner
     Friend WithEvents Label4 As Label
     Friend WithEvents btnOK As Button
     Friend WithEvents btnCancel As Button
+    Friend WithEvents Label5 As Label
 End Class
