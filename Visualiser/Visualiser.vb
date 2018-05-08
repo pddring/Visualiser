@@ -494,7 +494,7 @@ Public Class Visualiser
         AllowTransparency = False
 
         ' Mouse wheel handler can't be added in the GUI. Don't know why.
-        AddHandler Me.MouseWheel, AddressOf MouseWheelScroll
+        AddHandler picPreview.MouseWheel, AddressOf MouseWheelScroll
 
         ' Show device choose dialog on startup
         'If ChooseDevice() <> DialogResult.OK Then
@@ -527,7 +527,7 @@ Public Class Visualiser
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
-    Private Sub Visualiser_MouseDown(sender As Object, e As MouseEventArgs) Handles MyBase.MouseDown
+    Private Sub Visualiser_MouseDown(sender As Object, e As MouseEventArgs) Handles picPreview.MouseDown
 
         ' Store current mouse location
         currentAnnotation.coordinates.Location = e.Location
@@ -539,7 +539,7 @@ Public Class Visualiser
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
-    Private Sub Visualiser_MouseUp(sender As Object, e As MouseEventArgs) Handles MyBase.MouseUp
+    Private Sub Visualiser_MouseUp(sender As Object, e As MouseEventArgs) Handles picPreview.MouseUp
 
         ' Store annotation
         drawingShape = False
@@ -552,7 +552,7 @@ Public Class Visualiser
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
-    Private Sub Visualiser_MouseMove(sender As Object, e As MouseEventArgs) Handles MyBase.MouseMove
+    Private Sub Visualiser_MouseMove(sender As Object, e As MouseEventArgs) Handles picPreview.MouseMove
 
         ' Is user currently drawing an annotation?
         If drawingShape Then
