@@ -104,8 +104,6 @@ Public Class Visualiser
     ' Area to crop in order to zoom in on part of the image
     Dim pad As New ZoomArea
 
-    ' Last frame from the camera
-    Dim frame As Bitmap
 
     ' Keeps track of whether the app is in full screen mode or not
     Dim fullScreen As Boolean = False
@@ -127,14 +125,14 @@ Public Class Visualiser
     ''' <param name="eventArgs"></param>
     Private Sub NewFrame(sender As Object, eventArgs As NewFrameEventArgs)
         ' Create a new bitmap the size of the current window for drawing
-        Dim frame As Bitmap = New Bitmap(Width, Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+        Dim frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
         frameW = eventArgs.Frame.Width
         frameH = eventArgs.Frame.Height
 
-        Using g As Graphics = Drawing.Graphics.FromImage(frame)
+        Dim g As Graphics = Drawing.Graphics.FromImage(frame)
 
-            ' Enable high quality settings
-            If highQuality Then
+        ' Enable high quality settings
+        If highQuality Then
                 g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
                 g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
                 g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
@@ -142,9 +140,9 @@ Public Class Visualiser
                 g.CompositingMode = Drawing2D.CompositingMode.SourceOver
             End If
 
-            ' Resize captured frame
-            Dim destRect As New Rectangle(0, 0, Width, Height)
-            Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
+        ' Resize captured frame
+        Dim destRect As New Rectangle(0, 0, picPreview.Width, picPreview.Height)
+        Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
             g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
 
             ' Draw annotations
@@ -175,10 +173,11 @@ Public Class Visualiser
                 End Select
             Catch
             End Try
-        End Using
+
 
         ' Update the current window with the resized image plus annotations
-        Me.BackgroundImage = frame
+        picPreview.BackgroundImage = frame
+        'frame.Dispose()
 
         ' update frame rate stats
         frameCount += 1
@@ -318,10 +317,13 @@ Public Class Visualiser
                         url = streamIP + "cam/1/led_toggle"
 
                         Dim t As New Task(Sub()
+                                              Try
+                                                  Dim request = WebRequest.Create(url)
+                                                  Using response = request.GetResponse()
+                                                  End Using
+                                              Catch
+                                              End Try
 
-                                              Dim request = WebRequest.Create(url)
-                                              Using response = request.GetResponse()
-                                              End Using
 
                                           End Sub)
                         t.Start()
@@ -438,11 +440,15 @@ Public Class Visualiser
                 End If
 
                 Dim t As New Task(Sub()
-                                      Dim request = WebRequest.Create(url)
-                                      Using response = request.GetResponse()
-                                          zoom += zDiff
+                                      Try
+                                          Dim request = WebRequest.Create(url)
+                                          Using response = request.GetResponse()
+                                              zoom += zDiff
 
-                                      End Using
+                                          End Using
+                                      Catch
+                                          zoom = 0
+                                      End Try
 
                                   End Sub)
                 t.Start()
@@ -453,8 +459,8 @@ Public Class Visualiser
             Dim aY As Double = frameH / 10
 
             ' aX is the total amount to ignore on both left and right. x is how much of aX is ignored on the left.
-            Dim x As Double = aX * (e.X / Width)
-            Dim y As Double = aY * (e.Y / Height)
+            Dim x As Double = aX * (e.X / picPreview.Width)
+            Dim y As Double = aY * (e.Y / picPreview.Height)
 
             ' Zoom in
             If e.Delta > 0 Then
@@ -778,6 +784,8 @@ Public Class Visualiser
             MsgBox("Could not connect")
         End Try
     End Sub
+
+
 
     ''' <summary>
     ''' Menu: Camera > Connect to stream

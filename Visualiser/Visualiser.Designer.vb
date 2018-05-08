@@ -47,24 +47,26 @@ Partial Class Visualiser
         Me.Reset0ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FullScreenFToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToogleToolbarTToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.picPreview = New System.Windows.Forms.PictureBox()
         Me.statusBar.SuspendLayout()
         Me.mainMenu.SuspendLayout()
+        CType(Me.picPreview, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'statusBar
         '
         Me.statusBar.ImageScalingSize = New System.Drawing.Size(32, 32)
         Me.statusBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
-        Me.statusBar.Location = New System.Drawing.Point(0, 649)
+        Me.statusBar.Location = New System.Drawing.Point(0, 650)
         Me.statusBar.Name = "statusBar"
-        Me.statusBar.Size = New System.Drawing.Size(854, 38)
+        Me.statusBar.Size = New System.Drawing.Size(854, 37)
         Me.statusBar.TabIndex = 0
         Me.statusBar.Text = "StatusStrip1"
         '
         'lblStatus
         '
         Me.lblStatus.Name = "lblStatus"
-        Me.lblStatus.Size = New System.Drawing.Size(120, 33)
+        Me.lblStatus.Size = New System.Drawing.Size(120, 32)
         Me.lblStatus.Text = "Status bar"
         '
         'timerRefresh
@@ -200,13 +202,24 @@ Partial Class Visualiser
         Me.ToogleToolbarTToolStripMenuItem.Size = New System.Drawing.Size(303, 38)
         Me.ToogleToolbarTToolStripMenuItem.Text = "&Toogle toolbar (T)"
         '
+        'picPreview
+        '
+        Me.picPreview.BackgroundImage = Global.Visualiser.My.Resources.Resources.Help
+        Me.picPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.picPreview.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.picPreview.Location = New System.Drawing.Point(0, 40)
+        Me.picPreview.Name = "picPreview"
+        Me.picPreview.Size = New System.Drawing.Size(854, 610)
+        Me.picPreview.TabIndex = 2
+        Me.picPreview.TabStop = False
+        '
         'Visualiser
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(12.0!, 25.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.BackgroundImage = Global.Visualiser.My.Resources.Resources.Help
         Me.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.ClientSize = New System.Drawing.Size(854, 687)
+        Me.Controls.Add(Me.picPreview)
         Me.Controls.Add(Me.statusBar)
         Me.Controls.Add(Me.mainMenu)
         Me.DoubleBuffered = True
@@ -220,6 +233,7 @@ Partial Class Visualiser
         Me.statusBar.PerformLayout()
         Me.mainMenu.ResumeLayout(False)
         Me.mainMenu.PerformLayout()
+        CType(Me.picPreview, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -248,4 +262,5 @@ Partial Class Visualiser
     Friend WithEvents ToogleToolbarTToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents PlayPauseSpaceToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ConnectToStreamCtrl2ToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents picPreview As PictureBox
 End Class
