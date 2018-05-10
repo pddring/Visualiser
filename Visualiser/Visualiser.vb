@@ -64,6 +64,9 @@ Public Class Visualiser
         End Sub
     End Class
 
+    ' inital help image
+    Dim helpImage As Bitmap
+
     ' Annotation used whilst drawing, before it's saved
     Public currentAnnotation As Annotation = New Annotation
 
@@ -118,14 +121,17 @@ Public Class Visualiser
     Dim frameW As Integer = 800
     Dim frameH As Integer = 600
 
+    Dim frame As Bitmap
+
     ''' <summary>
     ''' Handler called when a new frame is available from the video capture device
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="eventArgs"></param>
     Private Sub NewFrame(sender As Object, eventArgs As NewFrameEventArgs)
+
         ' Create a new bitmap the size of the current window for drawing
-        Dim frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+        frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
         frameW = eventArgs.Frame.Width
         frameH = eventArgs.Frame.Height
 
@@ -133,54 +139,33 @@ Public Class Visualiser
 
         ' Enable high quality settings
         If highQuality Then
-                g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
-                g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
-                g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
-                g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-                g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-            End If
+            g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
+            g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
+            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
+            g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+            g.CompositingMode = Drawing2D.CompositingMode.SourceOver
+        End If
+
+        If rotate <> 0 Then
+            g.TranslateTransform(frame.Width / 2, frame.Height / 2)
+            g.RotateTransform(rotate)
+            g.TranslateTransform(-frame.Width / 2, -frame.Height / 2)
+        End If
 
         ' Resize captured frame
-        Dim destRect As New Rectangle(0, 0, picPreview.Width, picPreview.Height)
-        Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
-            g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
-
-            ' Draw annotations
-            Try
-                For Each a As Annotation In annotations
-                    Select Case a.Type
-                        Case Annotation.AnnotationType.Line
-                            g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
-                        Case Annotation.AnnotationType.Rectangle
-                            g.DrawRectangle(a.pen, a.coordinates)
-                        Case Annotation.AnnotationType.Scribble
-                            If a.points.Count > 2 Then
-                                g.DrawLines(a.pen, a.points.ToArray())
-                            End If
-                    End Select
-                Next
-
-                ' Draw current annotation
-                Select Case currentAnnotation.Type
-                    Case Annotation.AnnotationType.Line
-                        g.DrawLine(currentAnnotation.pen, currentAnnotation.coordinates.X, currentAnnotation.coordinates.Y, currentAnnotation.coordinates.Right, currentAnnotation.coordinates.Bottom)
-                    Case Annotation.AnnotationType.Rectangle
-                        g.DrawRectangle(currentAnnotation.pen, currentAnnotation.coordinates)
-                    Case Annotation.AnnotationType.Scribble
-                        If currentAnnotation.points.Count > 2 Then
-                            g.DrawLines(currentAnnotation.pen, currentAnnotation.points.ToArray())
-                        End If
-                End Select
-            Catch
-            End Try
+        'Dim destRect As New Rectangle(0, 0, picPreview.Width, picPreview.Height)
+        'Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
+        Dim destRect As New Rectangle(-pad.Left, -pad.Top, picPreview.Width + pad.Left + pad.Right, picPreview.Height + pad.Top + pad.Bottom)
+        Dim srcRect As New Rectangle(0, 0, eventArgs.Frame.Width, eventArgs.Frame.Height)
+        g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
 
 
-        ' Update the current window with the resized image plus annotations
-        picPreview.BackgroundImage = frame
-        'frame.Dispose()
+
+        picPreview.Invalidate()
 
         ' update frame rate stats
         frameCount += 1
+
 
     End Sub
 
@@ -233,10 +218,11 @@ Public Class Visualiser
         Else
             oldSize = Bounds
             Me.FormBorderStyle = FormBorderStyle.None
-            Left = 0
-            Top = 0
-            Width = Screen.FromHandle(Me.Handle).Bounds.Width
-            Height = Screen.FromHandle(Me.Handle).Bounds.Height
+            Dim s As Screen = Screen.FromHandle(Me.Handle)
+            Left = s.Bounds.Left
+            Top = s.Bounds.Top
+            Width = s.Bounds.Width
+            Height = s.Bounds.Height
             fullScreen = True
             mainMenu.Visible = False
         End If
@@ -250,6 +236,10 @@ Public Class Visualiser
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
 
         Select Case e.KeyCode
+            Case Keys.F1
+                picPreview.BackgroundImage = helpImage
+                picPreview.Invalidate()
+
             ' E shows camera settings window
             Case Keys.E
                 If source = SourceType.LocalCamera And Not IsNothing(device) Then
@@ -263,6 +253,7 @@ Public Class Visualiser
             ' C clears all annotations
             Case Keys.C
                 annotations.Clear()
+                picPreview.Invalidate()
 
             ' Q quits the program
             Case Keys.Q
@@ -277,6 +268,7 @@ Public Class Visualiser
                 If e.Control Then
                     Try
                         annotations.Remove(annotations.Last)
+                        picPreview.Invalidate()
                     Catch
                     End Try
                 End If
@@ -371,6 +363,11 @@ Public Class Visualiser
                 pad.Top = 0
                 pad.Bottom = 0
                 zoom = 0
+                rotate = 0
+
+            Case Keys.D9
+                resetBox()
+
         End Select
     End Sub
 
@@ -399,6 +396,10 @@ Public Class Visualiser
             If zoom > 1 Then
                 lblStatus.Text &= " Zoom: " & zoom
             End If
+
+            If rotate <> 0 Then
+                lblStatus.Text &= " " & rotate & " deg"
+            End If
         End If
 
         ' Reset frame count for the next second
@@ -407,14 +408,20 @@ Public Class Visualiser
 
 
     Dim zoom As Integer
+    Dim rotate As Integer
     ''' <summary>
     ''' Mouse scroll wheel handler - allows user to zoom in and out of an area of the video
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     Private Sub MouseWheelScroll(sender As Object, e As MouseEventArgs)
-
-        If My.Computer.Keyboard.CtrlKeyDown Then
+        If My.Computer.Keyboard.ShiftKeyDown Then
+            If e.Delta > 0 Then
+                rotate += 5
+            Else
+                rotate -= 5
+            End If
+        ElseIf My.Computer.Keyboard.CtrlKeyDown Then
             Dim flags As CameraControlFlags
             If source = SourceType.LocalCamera And IsNothing(device) = False Then
                 device.GetCameraProperty(CameraControlProperty.Zoom, zoom, flags)
@@ -458,9 +465,17 @@ Public Class Visualiser
             Dim aX As Double = frameW / 10
             Dim aY As Double = frameH / 10
 
+            ' Coordinates to zoom in on (after rotation has been cancelled)
+            Dim x As Double = e.X - (picPreview.Width / 2)
+            Dim y As Double = e.Y - (picPreview.Height / 2)
+            Dim rX As Double = x * Math.Cos(-rotate * Math.PI / 180) - y * Math.Cos(-rotate * Math.PI / 180)
+            Dim rY As Double = y * Math.Cos(-rotate * Math.PI / 180) + x * Math.Sin(-rotate * Math.PI / 180)
+            rX += picPreview.Width / 2
+            rY += picPreview.Height / 2
+
             ' aX is the total amount to ignore on both left and right. x is how much of aX is ignored on the left.
-            Dim x As Double = aX * (e.X / picPreview.Width)
-            Dim y As Double = aY * (e.Y / picPreview.Height)
+            x = aX * (rX / picPreview.Width)
+            y = aY * (rY / picPreview.Height)
 
             ' Zoom in
             If e.Delta > 0 Then
@@ -485,16 +500,34 @@ Public Class Visualiser
         End If
     End Sub
 
+    Sub resetBox()
+        MsgBox("Oh no!")
+
+        Me.Controls.Remove(picPreview)
+        picPreview = New PictureBox()
+        Me.Controls.Add(picPreview)
+        picPreview.Dock = DockStyle.Fill
+        picPreview.BackgroundImage = helpImage
+    End Sub
+
+    Sub UnknownError()
+        resetBox()
+
+    End Sub
+
     ''' <summary>
     ''' App initialisation
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        AddHandler Application.ThreadException, AddressOf UnknownError
         AllowTransparency = False
 
         ' Mouse wheel handler can't be added in the GUI. Don't know why.
-        AddHandler picPreview.MouseWheel, AddressOf MouseWheelScroll
+        AddHandler Me.MouseWheel, AddressOf MouseWheelScroll
+
+        helpImage = picPreview.BackgroundImage
 
         ' Show device choose dialog on startup
         'If ChooseDevice() <> DialogResult.OK Then
@@ -561,6 +594,7 @@ Public Class Visualiser
             If currentAnnotation.Type = Annotation.AnnotationType.Scribble Then
                 currentAnnotation.points.Add(e.Location)
             End If
+            picPreview.Invalidate()
         End If
     End Sub
 
@@ -794,5 +828,41 @@ Public Class Visualiser
     ''' <param name="e"></param>
     Private Sub ConnectToStreamCtrl2ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConnectToStreamCtrl2ToolStripMenuItem.Click
         ChooseStream()
+    End Sub
+
+    Private Sub picPreview_Paint(sender As Object, e As PaintEventArgs) Handles picPreview.Paint
+        If status = PlayMode.Playing Then
+            picPreview.BackgroundImage = frame
+        End If
+        Dim g As Graphics = e.Graphics
+        ' Draw annotations
+        Try
+            For Each a As Annotation In annotations
+                Select Case a.Type
+                    Case Annotation.AnnotationType.Line
+                        g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
+                    Case Annotation.AnnotationType.Rectangle
+                        g.DrawRectangle(a.pen, a.coordinates)
+                    Case Annotation.AnnotationType.Scribble
+                        If a.points.Count > 2 Then
+                            g.DrawLines(a.pen, a.points.ToArray())
+                        End If
+                End Select
+            Next
+
+            ' Draw current annotation
+            Select Case currentAnnotation.Type
+                Case Annotation.AnnotationType.Line
+                    g.DrawLine(currentAnnotation.pen, currentAnnotation.coordinates.X, currentAnnotation.coordinates.Y, currentAnnotation.coordinates.Right, currentAnnotation.coordinates.Bottom)
+                Case Annotation.AnnotationType.Rectangle
+                    g.DrawRectangle(currentAnnotation.pen, currentAnnotation.coordinates)
+                Case Annotation.AnnotationType.Scribble
+                    If currentAnnotation.points.Count > 2 Then
+                        g.DrawLines(currentAnnotation.pen, currentAnnotation.points.ToArray())
+                    End If
+            End Select
+        Catch
+        End Try
+
     End Sub
 End Class
