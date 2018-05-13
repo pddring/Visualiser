@@ -205,7 +205,7 @@ Partial Class Visualiser
         'picPreview
         '
         Me.picPreview.BackgroundImage = Global.Visualiser.My.Resources.Resources.Help
-        Me.picPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.picPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None
         Me.picPreview.Dock = System.Windows.Forms.DockStyle.Fill
         Me.picPreview.Location = New System.Drawing.Point(0, 40)
         Me.picPreview.Name = "picPreview"
