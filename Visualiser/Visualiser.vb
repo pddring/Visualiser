@@ -46,6 +46,8 @@ Public Class Visualiser
         ' colour and width of annotation
         Public pen As New Pen(New SolidBrush(Color.Red), 10)
 
+        Public tracker As OpenCvSharp.Tracking.TrackerKCF
+
         ' Copy settings from existing annotation
         Sub New(a As Annotation)
             Me.pen.Color = a.pen.Color
@@ -53,7 +55,6 @@ Public Class Visualiser
             pen.StartCap = Drawing2D.LineCap.Round
             pen.EndCap = Drawing2D.LineCap.Round
             pen.LineJoin = Drawing2D.LineJoin.Round
-
         End Sub
 
         ' Default constructor
@@ -118,6 +119,8 @@ Public Class Visualiser
     Dim frameW As Integer = 800
     Dim frameH As Integer = 600
 
+    Dim tracking As Boolean = False
+
     ''' <summary>
     ''' Handler called when a new frame is available from the video capture device
     ''' </summary>
@@ -143,36 +146,62 @@ Public Class Visualiser
         ' Resize captured frame
         Dim destRect As New Rectangle(0, 0, picPreview.Width, picPreview.Height)
         Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
-            g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
+        g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
 
-            ' Draw annotations
-            Try
-                For Each a As Annotation In annotations
-                    Select Case a.Type
-                        Case Annotation.AnnotationType.Line
-                            g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
-                        Case Annotation.AnnotationType.Rectangle
-                            g.DrawRectangle(a.pen, a.coordinates)
-                        Case Annotation.AnnotationType.Scribble
-                            If a.points.Count > 2 Then
-                                g.DrawLines(a.pen, a.points.ToArray())
-                            End If
-                    End Select
-                Next
+        Dim cvFrame As New OpenCvSharp.Mat
+        Dim cvGrey As New OpenCvSharp.Mat
+        If tracking Then
+            cvFrame = OpenCvSharp.Extensions.BitmapConverter.ToMat(frame)
+            OpenCvSharp.Cv2.CvtColor(cvFrame, cvGrey, OpenCvSharp.ColorConversionCodes.RGBA2GRAY)
+        End If
 
-                ' Draw current annotation
-                Select Case currentAnnotation.Type
+        ' Draw annotations
+        Try
+            For Each a As Annotation In annotations
+                Select Case a.Type
                     Case Annotation.AnnotationType.Line
-                        g.DrawLine(currentAnnotation.pen, currentAnnotation.coordinates.X, currentAnnotation.coordinates.Y, currentAnnotation.coordinates.Right, currentAnnotation.coordinates.Bottom)
+                        g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
                     Case Annotation.AnnotationType.Rectangle
-                        g.DrawRectangle(currentAnnotation.pen, currentAnnotation.coordinates)
+
+                        If tracking Then
+                            Dim c As OpenCvSharp.Rect2d = OpenCvSharp.Rect2d.FromLTRB(a.coordinates.Left, a.coordinates.Top, a.coordinates.Right, a.coordinates.Bottom)
+                            If IsNothing(a.tracker) Then
+                                a.tracker = OpenCvSharp.Tracking.TrackerKCF.Create()
+                                a.tracker.Init(cvGrey, c)
+                            Else
+                                a.tracker.Update(cvGrey, c)
+                                a.coordinates.X = c.Left
+                                a.coordinates.Y = c.Top
+                                a.coordinates.Width = c.Right - c.Left
+                                a.coordinates.Height = c.Bottom - c.Top
+                            End If
+
+                            g.DrawRectangle(a.pen, a.coordinates)
+                        End If
+
+                        g.DrawRectangle(a.pen, a.coordinates)
                     Case Annotation.AnnotationType.Scribble
-                        If currentAnnotation.points.Count > 2 Then
-                            g.DrawLines(currentAnnotation.pen, currentAnnotation.points.ToArray())
+                        If a.points.Count > 2 Then
+                            g.DrawLines(a.pen, a.points.ToArray())
                         End If
                 End Select
-            Catch
-            End Try
+            Next
+
+            ' Draw current annotation
+            Select Case currentAnnotation.Type
+                Case Annotation.AnnotationType.Line
+                    g.DrawLine(currentAnnotation.pen, currentAnnotation.coordinates.X, currentAnnotation.coordinates.Y, currentAnnotation.coordinates.Right, currentAnnotation.coordinates.Bottom)
+                Case Annotation.AnnotationType.Rectangle
+                    g.DrawRectangle(currentAnnotation.pen, currentAnnotation.coordinates)
+                Case Annotation.AnnotationType.Scribble
+                    If currentAnnotation.points.Count > 2 Then
+                        g.DrawLines(currentAnnotation.pen, currentAnnotation.points.ToArray())
+                    End If
+            End Select
+        Catch e As Exception
+            MsgBox(e.Message)
+
+        End Try
 
 
         ' Update the current window with the resized image plus annotations
@@ -258,7 +287,12 @@ Public Class Visualiser
 
             ' T toggles toolbar at the bottom of the screen
             Case Keys.T
-                statusBar.Visible = Not statusBar.Visible
+                If My.Computer.Keyboard.ShiftKeyDown Then
+                    tracking = Not tracking
+                Else
+                    statusBar.Visible = Not statusBar.Visible
+                End If
+
 
             ' C clears all annotations
             Case Keys.C
