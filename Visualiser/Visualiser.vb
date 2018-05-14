@@ -501,13 +501,19 @@ Public Class Visualiser
     End Sub
 
     Sub resetBox()
-        MsgBox("Oh no!")
+        lblStatus.Text = "Recovered image..."
 
         Me.Controls.Remove(picPreview)
         picPreview = New PictureBox()
         Me.Controls.Add(picPreview)
         picPreview.Dock = DockStyle.Fill
-        picPreview.BackgroundImage = helpImage
+
+        If status = PlayMode.Playing Then
+            picPreview.BackgroundImage = frame
+        Else
+            picPreview.BackgroundImage = helpImage
+        End If
+
     End Sub
 
     Sub UnknownError()
