@@ -72,10 +72,11 @@
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>D19D29E7E25825EDF53E8FAFB448DB1D67C45450</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>C86EA0BCEE3F20E5C049FDE05FD12497DA5110D1</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Visualiser_1_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>
+    </ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
