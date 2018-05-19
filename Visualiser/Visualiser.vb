@@ -131,7 +131,13 @@ Public Class Visualiser
     Private Sub NewFrame(sender As Object, eventArgs As NewFrameEventArgs)
 
         ' Create a new bitmap the size of the current window for drawing
-        frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+        If IsNothing(frame) Then
+            frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+        End If
+        If frame.Width <> picPreview.Width Or frame.Height <> picPreview.Height Then
+            frame.Dispose()
+            frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+        End If
         frameW = eventArgs.Frame.Width
         frameH = eventArgs.Frame.Height
 
