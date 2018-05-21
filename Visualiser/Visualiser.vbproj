@@ -195,6 +195,13 @@
     <None Include="Visualiser_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shape_scribble.png" />
+    <None Include="shape_rectangle.png" />
+    <None Include="shape_line.png" />
+    <None Include="pen_black.png" />
+    <None Include="pen_white.png" />
+    <None Include="pen_blue.png" />
+    <None Include="pen_red.png" />
     <None Include="Help.png" />
     <Content Include="Oxygen-Icons.org-Oxygen-Devices-camera-web.ico" />
   </ItemGroup>

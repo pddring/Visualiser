@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class Visualiser
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class Visualiser
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Visualiser))
@@ -48,6 +48,16 @@ Partial Class Visualiser
         Me.FullScreenFToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToogleToolbarTToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.picPreview = New System.Windows.Forms.PictureBox()
+        Me.btnChangeColour = New System.Windows.Forms.ToolStripDropDownButton()
+        Me.PickColourToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BlueToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BlackToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.RedToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.btnChangeShape = New System.Windows.Forms.ToolStripDropDownButton()
+        Me.ClearToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.RectangleToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.LineToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ScribbleToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.statusBar.SuspendLayout()
         Me.mainMenu.SuspendLayout()
         CType(Me.picPreview, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -56,17 +66,17 @@ Partial Class Visualiser
         'statusBar
         '
         Me.statusBar.ImageScalingSize = New System.Drawing.Size(32, 32)
-        Me.statusBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
-        Me.statusBar.Location = New System.Drawing.Point(0, 650)
+        Me.statusBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus, Me.btnChangeColour, Me.btnChangeShape})
+        Me.statusBar.Location = New System.Drawing.Point(0, 649)
         Me.statusBar.Name = "statusBar"
-        Me.statusBar.Size = New System.Drawing.Size(854, 37)
+        Me.statusBar.Size = New System.Drawing.Size(854, 38)
         Me.statusBar.TabIndex = 0
         Me.statusBar.Text = "StatusStrip1"
         '
         'lblStatus
         '
         Me.lblStatus.Name = "lblStatus"
-        Me.lblStatus.Size = New System.Drawing.Size(120, 32)
+        Me.lblStatus.Size = New System.Drawing.Size(120, 33)
         Me.lblStatus.Text = "Status bar"
         '
         'timerRefresh
@@ -205,13 +215,81 @@ Partial Class Visualiser
         'picPreview
         '
         Me.picPreview.BackgroundImage = Global.Visualiser.My.Resources.Resources.Help
-        Me.picPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None
+        Me.picPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.picPreview.Dock = System.Windows.Forms.DockStyle.Fill
         Me.picPreview.Location = New System.Drawing.Point(0, 40)
         Me.picPreview.Name = "picPreview"
-        Me.picPreview.Size = New System.Drawing.Size(854, 610)
+        Me.picPreview.Size = New System.Drawing.Size(854, 609)
         Me.picPreview.TabIndex = 2
         Me.picPreview.TabStop = False
+        '
+        'btnChangeColour
+        '
+        Me.btnChangeColour.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+        Me.btnChangeColour.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PickColourToolStripMenuItem, Me.BlueToolStripMenuItem, Me.BlackToolStripMenuItem, Me.RedToolStripMenuItem})
+        Me.btnChangeColour.Image = Global.Visualiser.My.Resources.Resources.pen_red
+        Me.btnChangeColour.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.btnChangeColour.Name = "btnChangeColour"
+        Me.btnChangeColour.Size = New System.Drawing.Size(54, 36)
+        Me.btnChangeColour.Text = "ToolStripDropDownButton1"
+        '
+        'PickColourToolStripMenuItem
+        '
+        Me.PickColourToolStripMenuItem.Name = "PickColourToolStripMenuItem"
+        Me.PickColourToolStripMenuItem.Size = New System.Drawing.Size(230, 38)
+        Me.PickColourToolStripMenuItem.Text = "Pick colour"
+        '
+        'BlueToolStripMenuItem
+        '
+        Me.BlueToolStripMenuItem.Name = "BlueToolStripMenuItem"
+        Me.BlueToolStripMenuItem.Size = New System.Drawing.Size(230, 38)
+        Me.BlueToolStripMenuItem.Text = "Blue"
+        '
+        'BlackToolStripMenuItem
+        '
+        Me.BlackToolStripMenuItem.Name = "BlackToolStripMenuItem"
+        Me.BlackToolStripMenuItem.Size = New System.Drawing.Size(230, 38)
+        Me.BlackToolStripMenuItem.Text = "Black"
+        '
+        'RedToolStripMenuItem
+        '
+        Me.RedToolStripMenuItem.Name = "RedToolStripMenuItem"
+        Me.RedToolStripMenuItem.Size = New System.Drawing.Size(230, 38)
+        Me.RedToolStripMenuItem.Text = "Red"
+        '
+        'btnChangeShape
+        '
+        Me.btnChangeShape.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
+        Me.btnChangeShape.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ClearToolStripMenuItem, Me.RectangleToolStripMenuItem, Me.LineToolStripMenuItem, Me.ScribbleToolStripMenuItem})
+        Me.btnChangeShape.Image = Global.Visualiser.My.Resources.Resources.shape_rectangle
+        Me.btnChangeShape.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.btnChangeShape.Name = "btnChangeShape"
+        Me.btnChangeShape.Size = New System.Drawing.Size(54, 36)
+        Me.btnChangeShape.Text = "ToolStripDropDownButton1"
+        '
+        'ClearToolStripMenuItem
+        '
+        Me.ClearToolStripMenuItem.Name = "ClearToolStripMenuItem"
+        Me.ClearToolStripMenuItem.Size = New System.Drawing.Size(268, 38)
+        Me.ClearToolStripMenuItem.Text = "Clear"
+        '
+        'RectangleToolStripMenuItem
+        '
+        Me.RectangleToolStripMenuItem.Name = "RectangleToolStripMenuItem"
+        Me.RectangleToolStripMenuItem.Size = New System.Drawing.Size(268, 38)
+        Me.RectangleToolStripMenuItem.Text = "Rectangle"
+        '
+        'LineToolStripMenuItem
+        '
+        Me.LineToolStripMenuItem.Name = "LineToolStripMenuItem"
+        Me.LineToolStripMenuItem.Size = New System.Drawing.Size(268, 38)
+        Me.LineToolStripMenuItem.Text = "Line"
+        '
+        'ScribbleToolStripMenuItem
+        '
+        Me.ScribbleToolStripMenuItem.Name = "ScribbleToolStripMenuItem"
+        Me.ScribbleToolStripMenuItem.Size = New System.Drawing.Size(268, 38)
+        Me.ScribbleToolStripMenuItem.Text = "Scribble"
         '
         'Visualiser
         '
@@ -222,7 +300,6 @@ Partial Class Visualiser
         Me.Controls.Add(Me.picPreview)
         Me.Controls.Add(Me.statusBar)
         Me.Controls.Add(Me.mainMenu)
-        Me.DoubleBuffered = True
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.KeyPreview = True
         Me.MainMenuStrip = Me.mainMenu
@@ -263,4 +340,14 @@ Partial Class Visualiser
     Friend WithEvents PlayPauseSpaceToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ConnectToStreamCtrl2ToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents picPreview As PictureBox
+    Friend WithEvents btnChangeColour As ToolStripDropDownButton
+    Friend WithEvents PickColourToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents BlueToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents BlackToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents RedToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents btnChangeShape As ToolStripDropDownButton
+    Friend WithEvents ClearToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents RectangleToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents LineToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ScribbleToolStripMenuItem As ToolStripMenuItem
 End Class

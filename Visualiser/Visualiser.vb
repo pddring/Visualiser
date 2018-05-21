@@ -37,11 +37,32 @@ Public Class Visualiser
             Scribble
         End Enum
 
+        Public Enabled As Boolean = False
+
         ' type of annotation
         Public Type As AnnotationType
 
+        Class PointF
+            Public X As Double
+            Public Y As Double
+
+            Sub New(from As Point)
+                Me.X = from.X
+                Me.Y = from.Y
+            End Sub
+        End Class
+
         ' list of points that define the freehand scribble
-        Public points As New List(Of Point)
+        Public points As New List(Of PointF)
+
+        Public Function GetPoints() As Point()
+            Dim points(Me.points.Count - 1) As Point
+            For i = 0 To Me.points.Count - 1
+                points(i).X = Me.points(i).X
+                points(i).Y = Me.points(i).Y
+            Next
+            Return points
+        End Function
 
         ' colour and width of annotation
         Public pen As New Pen(New SolidBrush(Color.Red), 10)
@@ -53,7 +74,7 @@ Public Class Visualiser
             pen.StartCap = Drawing2D.LineCap.Round
             pen.EndCap = Drawing2D.LineCap.Round
             pen.LineJoin = Drawing2D.LineJoin.Round
-
+            Enabled = True
         End Sub
 
         ' Default constructor
@@ -134,10 +155,30 @@ Public Class Visualiser
         If IsNothing(frame) Then
             frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
         End If
+
+        m.WaitOne()
+
         If frame.Width <> picPreview.Width Or frame.Height <> picPreview.Height Then
+            Dim sfX As Double = picPreview.Width / frame.Width
+            Dim sfY As Double = picPreview.Height / frame.Height
+
             frame.Dispose()
             frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+
+            For Each a As Annotation In annotations
+                a.coordinates.X *= sfX
+                a.coordinates.Width *= sfX
+                a.coordinates.Y *= sfY
+                a.coordinates.Height *= sfY
+                If a.Type = Annotation.AnnotationType.Scribble Then
+                    For Each p In a.points
+                        p.X *= sfX
+                        p.Y *= sfY
+                    Next
+                End If
+            Next
         End If
+
         frameW = eventArgs.Frame.Width
         frameH = eventArgs.Frame.Height
 
@@ -151,6 +192,7 @@ Public Class Visualiser
             g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
             g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         End If
+        g.FillRectangle(Brushes.Black, 0, 0, frame.Width, frame.Height)
 
         If rotate <> 0 Then
             g.TranslateTransform(frame.Width / 2, frame.Height / 2)
@@ -171,6 +213,8 @@ Public Class Visualiser
 
         ' update frame rate stats
         frameCount += 1
+
+        m.ReleaseMutex()
 
 
     End Sub
@@ -293,11 +337,7 @@ Public Class Visualiser
 
             ' P shows colour picker dialog
             Case Keys.P
-                Dim dlg As New ColorDialog
-                dlg.FullOpen = True
-                If dlg.ShowDialog = DialogResult.OK Then
-                    currentAnnotation.pen.Color = dlg.Color
-                End If
+                chooseColour
 
             ' Ctrl + 1 shows camera selection dialog
             ' 1 on its own toggles high / normal quality mode
@@ -533,7 +573,7 @@ Public Class Visualiser
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler Application.ThreadException, AddressOf UnknownError
+        'AddHandler Application.ThreadException, AddressOf UnknownError
         AllowTransparency = False
 
         ' Mouse wheel handler can't be added in the GUI. Don't know why.
@@ -577,6 +617,7 @@ Public Class Visualiser
         ' Store current mouse location
         currentAnnotation.coordinates.Location = e.Location
         drawingShape = True
+        currentAnnotation.Enabled = True
     End Sub
 
     ''' <summary>
@@ -604,7 +645,7 @@ Public Class Visualiser
             currentAnnotation.coordinates.Width = e.Location.X - currentAnnotation.coordinates.X
             currentAnnotation.coordinates.Height = e.Location.Y - currentAnnotation.coordinates.Y
             If currentAnnotation.Type = Annotation.AnnotationType.Scribble Then
-                currentAnnotation.points.Add(e.Location)
+                currentAnnotation.points.Add(New Annotation.PointF(e.Location))
             End If
             picPreview.Invalidate()
         End If
@@ -842,26 +883,33 @@ Public Class Visualiser
         ChooseStream()
     End Sub
 
-    Private Sub picPreview_Paint(sender As Object, e As PaintEventArgs) Handles picPreview.Paint
-        If status = PlayMode.Playing Then
-            picPreview.BackgroundImage = frame
-        End If
-        Dim g As Graphics = e.Graphics
-        ' Draw annotations
-        Try
-            For Each a As Annotation In annotations
-                Select Case a.Type
-                    Case Annotation.AnnotationType.Line
-                        g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
-                    Case Annotation.AnnotationType.Rectangle
-                        g.DrawRectangle(a.pen, a.coordinates)
-                    Case Annotation.AnnotationType.Scribble
-                        If a.points.Count > 2 Then
-                            g.DrawLines(a.pen, a.points.ToArray())
-                        End If
-                End Select
-            Next
+    Dim m As New System.Threading.Mutex
 
+    Private Sub picPreview_Paint(sender As Object, e As PaintEventArgs) Handles picPreview.Paint
+
+
+
+        m.WaitOne()
+        Dim g As Graphics = e.Graphics
+        If Not IsNothing(frame) Then
+            g.DrawImage(frame, 0, 0)
+        End If
+
+        ' Draw annotations
+        For Each a As Annotation In annotations
+            Select Case a.Type
+                Case Annotation.AnnotationType.Line
+                    g.DrawLine(a.pen, a.coordinates.X, a.coordinates.Y, a.coordinates.Right, a.coordinates.Bottom)
+                Case Annotation.AnnotationType.Rectangle
+                    g.DrawRectangle(a.pen, a.coordinates)
+                Case Annotation.AnnotationType.Scribble
+                    If a.points.Count > 2 Then
+                        g.DrawLines(a.pen, a.getPoints())
+                    End If
+            End Select
+        Next
+
+        If currentAnnotation.Enabled Then
             ' Draw current annotation
             Select Case currentAnnotation.Type
                 Case Annotation.AnnotationType.Line
@@ -870,11 +918,59 @@ Public Class Visualiser
                     g.DrawRectangle(currentAnnotation.pen, currentAnnotation.coordinates)
                 Case Annotation.AnnotationType.Scribble
                     If currentAnnotation.points.Count > 2 Then
-                        g.DrawLines(currentAnnotation.pen, currentAnnotation.points.ToArray())
+                        g.DrawLines(currentAnnotation.pen, currentAnnotation.GetPoints)
                     End If
             End Select
-        Catch
-        End Try
+        End If
+        m.ReleaseMutex()
 
+    End Sub
+
+    Sub ChooseColour()
+        Dim dlg As New ColorDialog
+        dlg.FullOpen = True
+        If dlg.ShowDialog = DialogResult.OK Then
+            currentAnnotation.pen.Color = dlg.Color
+        End If
+    End Sub
+
+
+    Private Sub BlueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BlueToolStripMenuItem.Click
+        currentAnnotation.pen.Color = Color.Blue
+        btnChangeColour.Image = My.Resources.ResourceManager.GetObject("pen_blue")
+    End Sub
+
+    Private Sub BlackToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BlackToolStripMenuItem.Click
+        currentAnnotation.pen.Color = Color.Black
+        btnChangeColour.Image = My.Resources.ResourceManager.GetObject("pen_black")
+    End Sub
+
+    Private Sub RedToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RedToolStripMenuItem.Click
+        currentAnnotation.pen.Color = Color.Red
+        btnChangeColour.Image = My.Resources.ResourceManager.GetObject("pen_red")
+    End Sub
+
+    Private Sub PickColourToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PickColourToolStripMenuItem.Click
+        ChooseColour()
+    End Sub
+
+    Private Sub ScribbleToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ScribbleToolStripMenuItem.Click
+        currentAnnotation.Type = Annotation.AnnotationType.Scribble
+        btnChangeShape.Image = My.Resources.ResourceManager.GetObject("shape_scribble")
+    End Sub
+
+    Private Sub ClearToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ClearToolStripMenuItem.Click
+        annotations.Clear()
+        picPreview.Invalidate()
+    End Sub
+
+    Private Sub RectangleToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RectangleToolStripMenuItem.Click
+        currentAnnotation.Type = Annotation.AnnotationType.Rectangle
+        btnChangeShape.Image = My.Resources.ResourceManager.GetObject("shape_rectangle")
+    End Sub
+
+    Private Sub LineToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LineToolStripMenuItem.Click
+        currentAnnotation.Type = Annotation.AnnotationType.Line
+        btnChangeShape.Image = My.Resources.ResourceManager.GetObject("shape_line")
     End Sub
 End Class
