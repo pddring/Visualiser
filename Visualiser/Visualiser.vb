@@ -1,7 +1,7 @@
 ﻿Imports System.Net
 Imports System.Text.RegularExpressions
-Imports AForge.Video
-Imports AForge.Video.DirectShow
+Imports Accord.Video
+Imports Accord.Video.DirectShow
 
 ''' <summary>
 ''' Visualiser form
@@ -150,33 +150,43 @@ Public Class Visualiser
     ''' <param name="sender"></param>
     ''' <param name="eventArgs"></param>
     Private Sub NewFrame(sender As Object, eventArgs As NewFrameEventArgs)
-
+        Dim w = picPreview.Width
+        If w Mod 2 <> 0 Then
+            w += 1
+        End If
+        Dim h = picPreview.Height
+        If h Mod 2 <> 0 Then
+            h += 1
+        End If
         ' Create a new bitmap the size of the current window for drawing
         If IsNothing(frame) Then
-            frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+            frame = New Bitmap(w, h, Drawing.Imaging.PixelFormat.Format32bppArgb)
         End If
 
         m.WaitOne()
 
-        If frame.Width <> picPreview.Width Or frame.Height <> picPreview.Height Then
-            Dim sfX As Double = picPreview.Width / frame.Width
-            Dim sfY As Double = picPreview.Height / frame.Height
+        If Not recording Then
+            recordStartTime = Now
+            If frame.Width <> w Or frame.Height <> h Then
+                Dim sfX As Double = picPreview.Width / frame.Width
+                Dim sfY As Double = picPreview.Height / frame.Height
 
-            frame.Dispose()
-            frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
+                frame.Dispose()
+                frame = New Bitmap(picPreview.Width, picPreview.Height, Drawing.Imaging.PixelFormat.Format32bppArgb)
 
-            For Each a As Annotation In annotations
-                a.coordinates.X *= sfX
-                a.coordinates.Width *= sfX
-                a.coordinates.Y *= sfY
-                a.coordinates.Height *= sfY
-                If a.Type = Annotation.AnnotationType.Scribble Then
-                    For Each p In a.points
-                        p.X *= sfX
-                        p.Y *= sfY
-                    Next
-                End If
-            Next
+                For Each a As Annotation In annotations
+                    a.coordinates.X *= sfX
+                    a.coordinates.Width *= sfX
+                    a.coordinates.Y *= sfY
+                    a.coordinates.Height *= sfY
+                    If a.Type = Annotation.AnnotationType.Scribble Then
+                        For Each p In a.points
+                            p.X *= sfX
+                            p.Y *= sfY
+                        Next
+                    End If
+                Next
+            End If
         End If
 
         frameW = eventArgs.Frame.Width
@@ -201,12 +211,13 @@ Public Class Visualiser
         End If
 
         ' Resize captured frame
-        'Dim destRect As New Rectangle(0, 0, picPreview.Width, picPreview.Height)
-        'Dim srcRect As New Rectangle(pad.Left, pad.Top, eventArgs.Frame.Width - pad.Right - pad.Left, eventArgs.Frame.Height - pad.Bottom - pad.Top)
         Dim destRect As New Rectangle(-pad.Left, -pad.Top, picPreview.Width + pad.Left + pad.Right, picPreview.Height + pad.Top + pad.Bottom)
         Dim srcRect As New Rectangle(0, 0, eventArgs.Frame.Width, eventArgs.Frame.Height)
         g.DrawImage(eventArgs.Frame, destRect, srcRect, GraphicsUnit.Pixel)
 
+        If recording Then
+            videoWriter.WriteVideoFrame(frame, Now - recordStartTime)
+        End If
 
 
         picPreview.Invalidate()
@@ -445,6 +456,10 @@ Public Class Visualiser
 
             If rotate <> 0 Then
                 lblStatus.Text &= " " & rotate & " deg"
+            End If
+
+            If recording Then
+                lblStatus.Text &= " (REC)"
             End If
         End If
 
@@ -972,5 +987,61 @@ Public Class Visualiser
     Private Sub LineToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LineToolStripMenuItem.Click
         currentAnnotation.Type = Annotation.AnnotationType.Line
         btnChangeShape.Image = My.Resources.ResourceManager.GetObject("shape_line")
+    End Sub
+
+    Sub SaveVideo()
+        If recording = False Then
+            Dim dlg As New SaveFileDialog
+            dlg.Title = "Save video"
+            dlg.FileName = "Video" & Now.ToString("dd mm yyyy H-mm") & ".mp4"
+            If dlg.ShowDialog = DialogResult.OK Then
+                Dim w = picPreview.Width
+                If w Mod 2 <> 0 Then
+                    w += 1
+                End If
+                Dim h = picPreview.Height
+                If h Mod 2 <> 0 Then
+                    h += 1
+                End If
+                videoWriter.Open(dlg.FileName, w, h)
+                recording = True
+                recordStartTime = Now
+            End If
+        Else
+            recording = False
+            videoWriter.Close()
+        End If
+    End Sub
+
+    Sub SaveImage()
+        If Not IsNothing(frame) Then
+            Dim dlg As New SaveFileDialog
+            dlg.Title = "Save image"
+            dlg.FileName = "Snapshot " & Now.ToString("dd mm yyyy H-mm") & ".jpg"
+            If dlg.ShowDialog = DialogResult.OK Then
+                m.WaitOne()
+                frame.Save(dlg.FileName)
+                m.ReleaseMutex()
+            End If
+        End If
+    End Sub
+
+    Private Sub SaveImageToolStbripMenuItem_Click(sender As Object, e As EventArgs) Handles SaveImageToolStripMenuItem.Click
+        SaveImage()
+    End Sub
+
+    Dim videoWriter As New FFMPEG.VideoFileWriter
+    Dim recordStartTime As DateTime
+    Dim recording As Boolean = False
+    Private Sub SavevideoToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SavevideoToolStripMenuItem.Click
+        SaveVideo()
+    End Sub
+
+    Private Sub SaveVideoToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles SaveVideoToolStripMenuItem1.Click
+        SaveVideo()
+    End Sub
+
+    Private Sub SaveImageToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles SaveImageToolStripMenuItem1.Click
+        SaveImage()
     End Sub
 End Class
