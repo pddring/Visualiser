@@ -111,19 +111,21 @@ Partial Class Visualiser
         'SaveImageToolStripMenuItem
         '
         Me.SaveImageToolStripMenuItem.Name = "SaveImageToolStripMenuItem"
-        Me.SaveImageToolStripMenuItem.Size = New System.Drawing.Size(134, 22)
+        Me.SaveImageToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5
+        Me.SaveImageToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveImageToolStripMenuItem.Text = "&Save image"
         '
         'SavevideoToolStripMenuItem
         '
         Me.SavevideoToolStripMenuItem.Name = "SavevideoToolStripMenuItem"
-        Me.SavevideoToolStripMenuItem.Size = New System.Drawing.Size(134, 22)
+        Me.SavevideoToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F6
+        Me.SavevideoToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SavevideoToolStripMenuItem.Text = "Save &video"
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(134, 22)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.ExitToolStripMenuItem.Text = "E&xit (Q)"
         '
         'CameraToolStripMenuItem
